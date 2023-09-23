@@ -1,5 +1,5 @@
 # *****************************************************************************
-# Lab 2.c.: Sentiment Analysis ----
+# Lab 2.c.: Sentiment Analysis (Lexicon-Based) ----
 #
 # Course Code: BBT4206
 # Course Name: Business Intelligence II
@@ -549,152 +549,265 @@ evaluation_wishes_filtered_nrc <- evaluation_wishes_filtered %>%
              by = join_by(`Wishes (tokenized)` == word),
              relationship = "many-to-many")
 
-
-# ############################### ----
-## Pirate Plot from the "yarrr" package ----
-# A pirate plot is an advanced method of plotting a continuous dependent
-# variable, such as the word count, as a function of a categorical independent
-# variable, such as the student's group or gender.
-# This combines raw data points, descriptive and inferential statistics into a
-# single effective plot.
-
-word_summary <- evaluation_likes_filtered %>%
-  group_by(`Student's Gender`) %>%
-  mutate(word_count = n_distinct(`Likes (tokenized)`)) %>%
-  select(`Likes (tokenized)`, `Student's Gender`, `Class Group`, word_count) %>%
-  distinct() %>% # To obtain one record per comment
-  ungroup()
-
-pirateplot(formula =  word_count ~ `Student's Gender`,
-           data = word_summary,
-           xlab = "Gender and Class Group", ylab = "Distinct Word Count",
-           main = "Lexical Diversity Per Gender",
-           pal = "google", # Color scheme
-           point.o = .2, # Points
-           avg.line.o = 1, # Turn on the Average/Mean line
-           theme = 0, # Theme
-           point.pch = 16, # Point `pch` type
-           point.cex = 1.5, # Point size
-           jitter.val = .1, # Turn on jitter to see the comments better
-           cex.lab = .9, cex.names = .7) #Axis label size
-
-
-
-# ############################### ----
-prince_data <- read.csv('data/prince_new.csv', stringsAsFactors = FALSE, row.names = 1)
-glimpse(prince_data) #Transposed version of `print()`
-#Created in the first tutorial
-undesirable_words <- c("prince", "chorus", "repeat", "lyrics",
-                       "theres", "bridge", "fe0f", "yeah", "baby",
-                       "alright", "wanna", "gonna", "chorus", "verse",
-                       "whoa", "gotta", "make", "miscellaneous", "2",
-                       "4", "ooh", "uurh", "pheromone", "poompoom", "3121",
-                       "matic", " ai ", " ca ", " la ", "hey", " na ",
-                       " da ", " uh ", " tin ", "  ll", "transcription",
-                       "repeats", "la", "da", "uh", "ah")
-
-#Create tidy text format: Unnested, Unsummarized, -Undesirables, Stop and Short words
-prince_tidy <- prince_data %>%
-  unnest_tokens(word, lyrics) %>% #Break the lyrics into individual words
-  filter(!word %in% undesirable_words) %>% #Remove undesirables
-  filter(!nchar(word) < 3) %>% #Words like "ah" or "oo" used in music
-  anti_join(stop_words) #Data provided by the tidytext package
-
-# ############################### ----
-word_summary <- prince_tidy %>%
-  mutate(decade = ifelse(is.na(decade),"NONE", decade)) %>%
-  group_by(decade, song) %>%
-  mutate(word_count = n_distinct(word)) %>%
-  select(song, Released = decade, Charted = charted, word_count) %>%
-  distinct() %>% #To obtain one record per song
-  ungroup()
-
-pirateplot(formula =  word_count ~ Released + Charted, #Formula
-   data = word_summary, #Data frame
-   xlab = NULL, ylab = "Song Distinct Word Count", #Axis labels
-   main = "Lexical Diversity Per Decade", #Plot title
-   pal = "google", #Color scheme
-   point.o = .2, #Points
-   avg.line.o = 1, #Turn on the Average/Mean line
-   theme = 0, #Theme
-   point.pch = 16, #Point `pch` type
-   point.cex = 1.5, #Point size
-   jitter.val = .1, #Turn on jitter to see the songs better
-   cex.lab = .9, cex.names = .7) #Axis label size
-
-# ############################### ----
-
-songs_year <- prince_data %>%
-  select(song, year) %>%
-  group_by(year) %>%
-  summarise(song_count = n())
-
-id <- seq_len(nrow(songs_year))
-songs_year <- cbind(songs_year, id)
-label_data = songs_year
-number_of_bar = nrow(label_data) #Calculate the ANGLE of the labels
-angle = 90 - 360 * (label_data$id - 0.5) / number_of_bar #Center things
-label_data$hjust <- ifelse(angle < -90, 1, 0) #Align label
-label_data$angle <- ifelse(angle < -90, angle + 180, angle) #Flip angle
-ggplot(songs_year, aes(x = as.factor(id), y = song_count)) +
-  geom_bar(stat = "identity", fill = alpha("purple", 0.7)) +
-  geom_text(data = label_data, aes(x = id, y = song_count + 10, label = year, hjust = hjust), color = "black", alpha = 0.6, size = 3, angle =  label_data$angle, inherit.aes = FALSE ) +
-  coord_polar(start = 0) +
-  ylim(-20, 150) + #Size of the circle
-  theme_minimal() +
-  theme(axis.text = element_blank(),
-        axis.title = element_blank(),
-        panel.grid = element_blank(),
-        plot.margin = unit(rep(-4,4), "in"),
-        plot.title = element_text(margin = margin(t = 10, b = -10)))
-
-# ############################### ----
-my_colors <- c("#E69F00", "#56B4E9", "#009E73", "#CC79A7", "#D55E00", "#D65E00")
-
-decade_chart <-  prince_data %>%
-  filter(decade != "NA") %>% #Remove songs without release dates
-  count(decade, charted)  #Get SONG count per chart level per decade. Order determines top or bottom.
-
-circos.clear() #Very important - Reset the circular layout parameters!
-grid.col = c("1970s" = my_colors[1], "1980s" = my_colors[2], "1990s" = my_colors[3], "2000s" = my_colors[4], "2010s" = my_colors[5], "Charted" = "grey", "Uncharted" = "grey") #assign chord colors
-# Set the global parameters for the circular layout. Specifically the gap size
-circos.par(gap.after = c(rep(5, length(unique(decade_chart[[1]])) - 1), 15,
-                         rep(5, length(unique(decade_chart[[2]])) - 1), 15))
-
-chordDiagram(decade_chart, grid.col = grid.col, transparency = .2)
-title("Relationship Between Chart and Decade")
-
-# ############################### ----
-
-data(sentiments)
-head(sentiments)
-
-new_sentiments <- sentiments %>% #From the tidytext package
+# STEP 6. Overall Sentiment ----
+## Evaluation Likes ----
+nrc_likes_plot <- evaluation_likes_filtered_nrc %>%
   group_by(sentiment) %>%
-  mutate(words_in_lexicon = n_distinct(word)) %>%
+  # You can filter by the class group if you wish
+  # filter(`Class Group` == "A") %>%
+  summarise(word_count = n()) %>%
+  ungroup() %>%
+  mutate(sentiment = reorder(sentiment, word_count)) %>%
+  # `fill = -word_count` is used to make the larger bars darker
+  ggplot(aes(sentiment, word_count, fill = -word_count)) +
+  geom_col() +
+  guides(fill = FALSE) + # Turn off the legend
+  blue_grey_theme() +
+  labs(x = "Sentiment", y = "Word Count") +
+  # scale_y_continuous(limits = c(0, 15000)) + #Hard code the axis limit
+  ggtitle("Lexicon-Based Sentiment Analysis of Course Evaluation Likes") +
+  coord_flip()
+plot(nrc_likes_plot)
+
+# Various organizations have brand guidelines. You can download the
+# University's brand guidelines from here:
+# https://strathmore.edu/brand-guidelines/
+
+img <- "images/SCES-logo-01-blue-grey-bg-with-meme-space.jpg"
+# The meme's label can be specified here:
+lab <- "The BBT4106: Business Intelligence I course
+        taught from 12th April 2023 to 19th July 2023
+        by Dr Allan Omondi"
+# Overlay the plot on the image and create the meme file
+meme(img, lab, "memes/nrc_likes_plot.jpg", inset = nrc_likes_plot)
+#Read the file back in and display it!
+nrc_meme <- image_read("memes/nrc_likes_plot.jpg")
+plot(nrc_meme)
+
+## Evaluation Wishes ----
+nrc_wishes_plot <- evaluation_wishes_filtered_nrc %>%
+  group_by(sentiment) %>%
+  # You can filter by the class group if you wish
+  # filter(`Class Group` == "A") %>%
+  summarise(word_count = n()) %>%
+  ungroup() %>%
+  mutate(sentiment = reorder(sentiment, word_count)) %>%
+  # fill = -word_count is used to make the larger bars darker
+  ggplot(aes(sentiment, word_count, fill = -word_count)) +
+  geom_col() +
+  guides(fill = FALSE) + # Turn off the legend
+  blue_grey_theme() +
+  labs(x = "Sentiment", y = "Word Count") +
+  # scale_y_continuous(limits = c(0, 15000)) + #Hard code the axis limit
+  ggtitle("Lexicon-Based Sentiment Analysis of Course Evaluation Wishes") +
+  coord_flip()
+plot(nrc_wishes_plot)
+
+# Various organizations have brand guidelines. You can download the
+# University's brand guidelines from here:
+# https://strathmore.edu/brand-guidelines/
+
+img <- "images/SCES-logo-01-blue-grey-bg-with-meme-space.jpg"
+# The meme's label can be specified here:
+lab <- "The BBT4106: Business Intelligence I course
+        taught from 12th April 2023 to 19th July 2023
+        by Dr Allan Omondi"
+# Overlay the plot on the image and create the meme file
+meme(img, lab, "memes/nrc_wishes_plot.jpg", inset = nrc_wishes_plot)
+#Read the file back in and display it!
+nrc_meme <- image_read("memes/nrc_wishes_plot.jpg")
+plot(nrc_meme)
+
+# STEP 7. Sentiment per Group and per Gender ----
+## Evaluation Likes per Group ----
+# We can save the plots by hard-coding the save function as follows:
+# NOTE: Execute one filetype at a time, i.e., either PNG, JPEG, SVG, or PDF.
+# png(filename = "visualizations/nrc_likes_chord.png",
+#     width = 1920, height = 1080, units = "px", pointsize = 12,
+#     bg = "transparent", res = 150)
+
+jpeg(filename = "visualizations/nrc_likes_chord.jpeg",
+     width = 1920, height = 1080, units = "px", pointsize = 12,
+     bg = "transparent", res = 150)
+
+# svg(filename = "visualizations/nrc_likes_chord.svg",
+#     width = 8.5, height = 8.5, pointsize = 12,
+#     bg = "transparent")
+
+# pdf("visualizations/nrc_likes_chord.pdf",
+#     width = 8.5, height = 8.5,
+#     bg = "transparent", pagecentre = TRUE, paper = "A4")
+
+grid_col <- c("A" = blue_grey_colours_11[1],
+              "B" = "#f3c487",
+              "C" = blue_grey_colours_11[5])
+
+nrc_likes_chord <-  evaluation_likes_filtered_nrc %>%
+  # filter(decade != "NA" & !sentiment %in% c("positive", "negative")) %>%
+  count(sentiment, `Class Group`) %>%
+  group_by(`Class Group`, sentiment) %>%
+  summarise(sentiment_sum = sum(n)) %>%
+  filter(sentiment_sum > 10) %>%
+  mutate(sentiment = reorder(sentiment, sentiment_sum)) %>%
   ungroup()
 
-new_sentiments %>%
-  group_by(sentiment, words_in_lexicon) %>%
-  summarise(distinct_words = n_distinct(word)) %>%
-  ungroup() %>%
-  spread(sentiment, distinct_words) %>%
-  # mutate(sentiment = color_tile("lightblue", "lightblue")(sentiment),
-  #        words_in_lexicon = color_bar("lightpink")(words_in_lexicon)) %>%
-  kable_theme(caption = "Word Counts Per Lexicon")
+circos.clear()
+# Set the gap size
+circos.par(gap.after = c(rep(5, length(unique(nrc_likes_chord[[1]])) - 1), 15,
+                         rep(5, length(unique(nrc_likes_chord[[2]])) - 1), 15))
 
+chordDiagram(nrc_likes_chord, grid.col = grid_col, transparency = .2)
+title("Lexicon-Based Sentiment Analysis of Course Evaluation Likes per Group")
+
+# To close the device used to create either the PNG, JPEG, SVG, or PDF.
+dev.off()
+
+# To plot the chord diagram in the IDE:
+chordDiagram(nrc_likes_chord, grid.col = grid_col, transparency = .2)
+title("Lexicon-Based Sentiment Analysis of Course Evaluation Likes per Group")
+
+## Evaluation Wishes per Group ----
+# We can save the plots by hard-coding the save function as follows:
+# NOTE: Execute one filetype at a time, i.e., either PNG, JPEG, SVG, or PDF.
+# png(filename = "visualizations/nrc_wishes_chord.png",
+#     width = 1920, height = 1080, units = "px", pointsize = 12,
+#     bg = "transparent", res = 150)
+
+jpeg(filename = "visualizations/nrc_wishes_chord.jpeg",
+     width = 1920, height = 1080, units = "px", pointsize = 12,
+     bg = "transparent", res = 150)
+
+# svg(filename = "visualizations/nrc_wishes_chord.svg",
+#     width = 8.5, height = 8.5, pointsize = 12,
+#     bg = "transparent")
+
+# pdf("visualizations/nrc_wishes_chord.pdf",
+#     width = 8.5, height = 8.5,
+#     bg = "transparent", pagecentre = TRUE, paper = "A4")
+
+grid_col <- c("A" = blue_grey_colours_11[1],
+              "B" = "#f3c487",
+              "C" = blue_grey_colours_11[5])
+
+nrc_wishes_chord <-  evaluation_wishes_filtered_nrc %>%
+  # filter(decade != "NA" & !sentiment %in% c("positive", "negative")) %>%
+  count(sentiment, `Class Group`) %>%
+  group_by(`Class Group`, sentiment) %>%
+  summarise(sentiment_sum = sum(n)) %>%
+  filter(sentiment_sum > 3) %>%
+  mutate(sentiment = reorder(sentiment, sentiment_sum)) %>%
+  ungroup()
+
+circos.clear()
+# Set the gap size
+circos.par(gap.after = c(rep(5, length(unique(nrc_wishes_chord[[1]])) - 1), 15,
+                         rep(5, length(unique(nrc_wishes_chord[[2]])) - 1), 15))
+
+chordDiagram(nrc_wishes_chord, grid.col = grid_col, transparency = .2)
+title("Lexicon-Based Sentiment Analysis of Course Evaluation Wishes per Group")
+
+# To close the device used to create either the PNG, JPEG, SVG, or PDF.
+dev.off()
+
+# To plot the chord diagram in the IDE:
+chordDiagram(nrc_wishes_chord, grid.col = grid_col, transparency = .2)
+title("Lexicon-Based Sentiment Analysis of Course Evaluation Wishes per Group")
+
+## Evaluation Likes per Gender ----
+# We can save the plots by hard-coding the save function as follows:
+# NOTE: Execute one filetype at a time, i.e., either PNG, JPEG, SVG, or PDF.
+# png(filename = "visualizations/nrc_likes_gender_chord.png",
+#     width = 1920, height = 1080, units = "px", pointsize = 12,
+#     bg = "transparent", res = 150)
+
+jpeg(filename = "visualizations/nrc_likes_gender_chord.jpeg",
+     width = 1920, height = 1080, units = "px", pointsize = 12,
+     bg = "transparent", res = 150)
+
+# svg(filename = "visualizations/nrc_likes_gender_chord.svg",
+#     width = 8.5, height = 8.5, pointsize = 12,
+#     bg = "transparent")
+
+# pdf("visualizations/nrc_likes_gender_chord.pdf",
+#     width = 8.5, height = 8.5,
+#     bg = "transparent", pagecentre = TRUE, paper = "A4")
+
+grid_col <- c("Male" = blue_grey_colours_11[1],
+              "Female" = "#f387f3")
+
+nrc_likes_chord <-  evaluation_likes_filtered_nrc %>%
+  # filter(decade != "NA" & !sentiment %in% c("positive", "negative")) %>%
+  count(sentiment, `Student's Gender`) %>%
+  group_by(`Student's Gender`, sentiment) %>%
+  summarise(sentiment_sum = sum(n)) %>%
+  filter(sentiment_sum > 10) %>%
+  mutate(sentiment = reorder(sentiment, sentiment_sum)) %>%
+  ungroup()
+
+circos.clear()
+# Set the gap size
+circos.par(gap.after = c(rep(5, length(unique(nrc_likes_chord[[1]])) - 1), 15,
+                         rep(5, length(unique(nrc_likes_chord[[2]])) - 1), 15))
+
+chordDiagram(nrc_likes_chord, grid.col = grid_col, transparency = .2)
+title("Lexicon-Based Sentiment Analysis of Course Evaluation Likes per Gender")
+
+# To close the device used to create either the PNG, JPEG, SVG, or PDF.
+dev.off()
+
+# To plot the chord diagram in the IDE:
+chordDiagram(nrc_likes_chord, grid.col = grid_col, transparency = .2)
+title("Lexicon-Based Sentiment Analysis of Course Evaluation Likes per Gender")
+
+## Evaluation Wishes per Gender ----
+# We can save the plots by hard-coding the save function as follows:
+# NOTE: Execute one filetype at a time, i.e., either PNG, JPEG, SVG, or PDF.
+# png(filename = "visualizations/nrc_wishes_gender_chord.png",
+#     width = 1920, height = 1080, units = "px", pointsize = 12,
+#     bg = "transparent", res = 150)
+
+jpeg(filename = "visualizations/nrc_wishes_gender_chord.jpeg",
+     width = 1920, height = 1080, units = "px", pointsize = 12,
+     bg = "transparent", res = 150)
+
+# svg(filename = "visualizations/nrc_wishes_gender_chord.svg",
+#     width = 8.5, height = 8.5, pointsize = 12,
+#     bg = "transparent")
+
+# pdf("visualizations/nrc_wishes_gender_chord.pdf",
+#     width = 8.5, height = 8.5,
+#     bg = "transparent", pagecentre = TRUE, paper = "A4")
+
+grid_col <- c("Male" = blue_grey_colours_11[1],
+              "Female" = "#f387f3")
+
+nrc_wishes_chord <-  evaluation_wishes_filtered_nrc %>%
+  # filter(decade != "NA" & !sentiment %in% c("positive", "negative")) %>%
+  count(sentiment, `Student's Gender`) %>%
+  group_by(`Student's Gender`, sentiment) %>%
+  summarise(sentiment_sum = sum(n)) %>%
+  filter(sentiment_sum > 3) %>%
+  mutate(sentiment = reorder(sentiment, sentiment_sum)) %>%
+  ungroup()
+
+circos.clear()
+# Set the gap size
+circos.par(gap.after = c(rep(5, length(unique(nrc_wishes_chord[[1]])) - 1), 15,
+                         rep(5, length(unique(nrc_wishes_chord[[2]])) - 1), 15))
+
+chordDiagram(nrc_wishes_chord, grid.col = grid_col, transparency = .2)
+title("Lexicon-Based Sentiment Analysis of Course Evaluation Wishes per Gender")
+
+# To close the device used to create either the PNG, JPEG, SVG, or PDF.
+dev.off()
+
+# To plot the chord diagram in the IDE:
+chordDiagram(nrc_wishes_chord, grid.col = grid_col, transparency = .2)
+title("Lexicon-Based Sentiment Analysis of Course Evaluation Wishes per Gender")
+
+# STEP 8. Real-Time Sentiment ----
 
 # ############################### ----
-install.packages("textdata", dependencies=TRUE)
-AFINN <- get_sentiments("afinn") %>%
-  select(word, afinn_score = value)
-
-# ############################### ----
-
-prince_nrc <- prince_tidy %>%
-  inner_join(get_sentiments("nrc"),
-             by = join_by(word == word),
-             relationship = "many-to-many")
 
 # ############################### ----
 
@@ -721,6 +834,8 @@ prince_nrc <- prince_tidy %>%
 ## Lang, D., & Chien, G. (2018). wordcloud2: Create Word Cloud by ‘htmlwidget’ (0.2.1) [Computer software]. https://cran.r-project.org/package=wordcloud2 # nolint ----
 
 ## Leonawicz, M. (2023). memery: Internet Memes for Data Analysts (0.5.7) [Computer software]. https://cran.r-project.org/package=memery # nolint ----
+
+## Liske, D. (2018). R NLP & Machine Learning: Lyric Analysis [Tutorial]. Datacamp. https://www.datacamp.com/tutorial/R-nlp-machine-learning # nolint ----
 
 ## Mohammad, S. M., & Turney, P. D. (2013). Crowdsourcing a Word-Emotion Association Lexicon. Computational Intelligence, 29(3), 436–465. https://doi.org/10.1111/j.1467-8640.2012.00460.x # nolint ----
 
@@ -808,4 +923,3 @@ prince_nrc <- prince_tidy %>%
 # Upload *the link* to "Lab-Submission-Markdown.md" (not .Rmd)
 # markdown file hosted on Github (do not upload the .Rmd or .md markdown files)
 # through the submission link provided on eLearning.
-

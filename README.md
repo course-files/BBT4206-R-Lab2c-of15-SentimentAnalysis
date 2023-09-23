@@ -3,7 +3,7 @@
 These are course files (instructional materials) for the **BBT4206: Business Intelligence II** course using **R**.
 
 | **Attribute**         | Value                                                        |
-|--------------------------|----------------------------------------------|
+|-----------------------|-------------------------------------------------|
 | **Course Code**       | BBT4206                                                      |
 | **Course Name**       | Business Intelligence II                                     |
 | **URL**               | <https://elearning.strathmore.edu/course/view.php?id=6599>   |
@@ -33,7 +33,9 @@ This involves describing data to better understand it. Through this understandin
 
 -   *Lab2a-ExploratoryDataAnalysisForQuantitativeData.R*
 
--   [*Lab2b-ExploratoryDataAnalysisForQualitativeData.R*](Lab2b-ExploratoryDataAnalysisForQualitativeData.R)
+-   *Lab2b-ExploratoryDataAnalysisForQualitativeData.R*
+
+-   [*Lab2c-SentimentAnalysis.R*](Lab2c-SentimentAnalysis.R)
 
 -   *Lab3-DataImputation.R*
 
