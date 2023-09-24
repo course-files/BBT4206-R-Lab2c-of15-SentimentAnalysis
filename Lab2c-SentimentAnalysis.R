@@ -618,7 +618,7 @@ meme(img, lab, "memes/nrc_wishes_plot.jpg", inset = nrc_wishes_plot)
 nrc_meme <- image_read("memes/nrc_wishes_plot.jpg")
 plot(nrc_meme)
 
-# STEP 7. Sentiment per Group and per Gender ----
+# STEP 7. Frequency Sentiment per Group and per Gender ----
 ## Evaluation Likes per Group ----
 # We can save the plots by hard-coding the save function as follows:
 # NOTE: Execute one filetype at a time, i.e., either PNG, JPEG, SVG, or PDF.
@@ -778,8 +778,8 @@ jpeg(filename = "visualizations/nrc_wishes_gender_chord.jpeg",
 #     width = 8.5, height = 8.5,
 #     bg = "transparent", pagecentre = TRUE, paper = "A4")
 
-grid_col <- c("Male" = blue_grey_colours_11[1],
-              "Female" = "#f387f3")
+grid_col <- c("Male" = "lightblue",
+              "Female" = "lightpink")
 
 nrc_wishes_chord <-  evaluation_wishes_filtered_nrc %>%
   # filter(decade != "NA" & !sentiment %in% c("positive", "negative")) %>%
@@ -805,9 +805,182 @@ dev.off()
 chordDiagram(nrc_wishes_chord, grid.col = grid_col, transparency = .2)
 title("Lexicon-Based Sentiment Analysis of Course Evaluation Wishes per Gender")
 
-# STEP 8. Real-Time Sentiment ----
+# STEP 8. Percentage Sentiment per Group and per Gender ----
+## Evaluation Likes per Group ----
+# Get the count of words per sentiment per group
+nrc_likes_per_sentiment_per_group_radar <- # nolint
+  evaluation_likes_filtered_nrc %>%
+  group_by(`Class Group`, sentiment) %>%
+  count(`Class Group`, sentiment) %>%
+  select(`Class Group`, sentiment, sentiment_count = n)
+
+View(nrc_likes_per_sentiment_per_group_radar)
+
+# Get the total count of sentiment words per group (not distinct)
+nrc_likes_total_per_group_radar <- evaluation_likes_filtered_nrc %>% # nolint
+  count(`Class Group`) %>%
+  select(`Class Group`, group_total = n)
+
+View(nrc_likes_total_per_group_radar)
+
+# Join the two and create a percent field
+nrc_likes_group_radar_chart <- nrc_likes_per_sentiment_per_group_radar %>%
+  inner_join(nrc_likes_total_per_group_radar, by = "Class Group") %>%
+  mutate(percent = sentiment_count / group_total * 100) %>%
+  select(-sentiment_count, -group_total) %>%
+  spread(`Class Group`, percent)
+
+View(nrc_likes_group_radar_chart)
+
+# Plot the chartJS radar
+chartJSRadar(nrc_likes_group_radar_chart,
+             showToolTipLabel = TRUE,
+             main = "Lexicon−Based Percentage Sentiment Analysis of Course Evaluation Likes per Group") # nolint
+
+## Evaluation Likes per Gender ----
+# Get the count of words per sentiment per gender
+nrc_likes_per_sentiment_per_gender_radar <- # nolint
+  evaluation_likes_filtered_nrc %>%
+  group_by(`Student's Gender`, sentiment) %>%
+  count(`Student's Gender`, sentiment) %>%
+  select(`Student's Gender`, sentiment, sentiment_count = n)
+
+View(nrc_likes_per_sentiment_per_gender_radar)
+
+# Get the total count of sentiment words per gender (not distinct)
+nrc_likes_total_per_gender_radar <- evaluation_likes_filtered_nrc %>% # nolint
+  count(`Student's Gender`) %>%
+  select(`Student's Gender`, group_total = n)
+
+View(nrc_likes_total_per_gender_radar)
+
+# Join the two and create a percent field
+nrc_likes_gender_radar_chart <- nrc_likes_per_sentiment_per_gender_radar %>%
+  inner_join(nrc_likes_total_per_gender_radar, by = "Student's Gender") %>%
+  mutate(percent = sentiment_count / group_total * 100) %>%
+  select(-sentiment_count, -group_total) %>%
+  spread(`Student's Gender`, percent)
+
+View(nrc_likes_gender_radar_chart)
+
+# Plot the chartJS radar
+chartJSRadar(nrc_likes_gender_radar_chart,
+             showToolTipLabel = TRUE,
+             main = "Lexicon−Based Percentage Sentiment Analysis of Course Evaluation Likes per Gender") # nolint
+
+## Evaluation Wishes per Group ----
+# Get the count of words per sentiment per group
+nrc_wishes_per_sentiment_per_group_radar <- # nolint
+  evaluation_wishes_filtered_nrc %>%
+  group_by(`Class Group`, sentiment) %>%
+  count(`Class Group`, sentiment) %>%
+  select(`Class Group`, sentiment, sentiment_count = n)
+
+View(nrc_wishes_per_sentiment_per_group_radar)
+
+# Get the total count of sentiment words per group (not distinct)
+nrc_wishes_total_per_group_radar <- evaluation_wishes_filtered_nrc %>% # nolint
+  count(`Class Group`) %>%
+  select(`Class Group`, group_total = n)
+
+View(nrc_wishes_total_per_group_radar)
+
+# Join the two and create a percent field
+nrc_wishes_group_radar_chart <- nrc_wishes_per_sentiment_per_group_radar %>%
+  inner_join(nrc_wishes_total_per_group_radar, by = "Class Group") %>%
+  mutate(percent = sentiment_count / group_total * 100) %>%
+  select(-sentiment_count, -group_total) %>%
+  spread(`Class Group`, percent)
+
+View(nrc_wishes_group_radar_chart)
+
+# Plot the chartJS radar
+chartJSRadar(nrc_wishes_group_radar_chart,
+             showToolTipLabel = TRUE,
+             main = "Lexicon−Based Percentage Sentiment Analysis of Course Evaluation Wishes per Group") # nolint
+
+## Evaluation Wishes per Gender ----
+# Get the count of words per sentiment per gender
+nrc_wishes_per_sentiment_per_gender_radar <- # nolint
+  evaluation_wishes_filtered_nrc %>%
+  group_by(`Student's Gender`, sentiment) %>%
+  count(`Student's Gender`, sentiment) %>%
+  select(`Student's Gender`, sentiment, sentiment_count = n)
+
+View(nrc_wishes_per_sentiment_per_gender_radar)
+
+# Get the total count of sentiment words per gender (not distinct)
+nrc_wishes_total_per_gender_radar <- evaluation_wishes_filtered_nrc %>% # nolint
+  count(`Student's Gender`) %>%
+  select(`Student's Gender`, group_total = n)
+
+View(nrc_wishes_total_per_gender_radar)
+
+# Join the two and create a percent field
+nrc_wishes_gender_radar_chart <- nrc_wishes_per_sentiment_per_gender_radar %>%
+  inner_join(nrc_wishes_total_per_gender_radar, by = "Student's Gender") %>%
+  mutate(percent = sentiment_count / group_total * 100) %>%
+  select(-sentiment_count, -group_total) %>%
+  spread(`Student's Gender`, percent)
+
+View(nrc_wishes_gender_radar_chart)
+
+# Plot the chartJS radar
+chartJSRadar(nrc_wishes_gender_radar_chart,
+             showToolTipLabel = TRUE,
+             main = "Lexicon−Based Percentage Sentiment Analysis of Course Evaluation Likes per Gender") # nolint
+
 
 # ############################### ----
+
+prince_data <- read.csv('data/prince_new.csv', stringsAsFactors = FALSE, row.names = 1) # nolint
+
+#Create tidy text format: Unnested, Unsummarized, -Undesirables, Stop and Short words # nolint
+prince_tidy <- prince_data %>%
+  unnest_tokens(word, lyrics) %>% #Break the lyrics into individual words
+  filter(!word %in% undesirable_words) %>% #Remove undesirables
+  filter(!nchar(word) < 3) %>% #Words like "ah" or "oo" used in music
+  anti_join(stop_words) #Data provided by the tidytext package
+
+prince_tidy %>%
+  mutate(words_in_lyrics = n_distinct(word)) %>%
+  inner_join(new_sentiments) %>%
+  group_by(lexicon, words_in_lyrics, words_in_lexicon) %>%
+  summarise(lex_match_words = n_distinct(word)) %>%
+  ungroup() %>%
+  mutate(total_match_words = sum(lex_match_words), #Not used but good to have
+         match_ratio = lex_match_words / words_in_lyrics) %>%
+  select(lexicon, lex_match_words,  words_in_lyrics, match_ratio) %>%
+  mutate(lex_match_words = color_bar("lightpink")(lex_match_words),
+         lexicon = color_tile("lightgreen", "lightgreen")(lexicon))
+
+
+prince_nrc_sub <- prince_tidy %>%
+  inner_join(get_sentiments("nrc")) %>%
+  filter(!sentiment %in% c("positive", "negative"))
+
+
+#Get the count of words per sentiment per year
+year_sentiment_nrc <- prince_nrc_sub %>%
+  group_by(year, sentiment) %>%
+  count(year, sentiment) %>%
+  select(year, sentiment, sentiment_year_count = n)
+
+#Get the total count of sentiment words per year (not distinct)
+total_sentiment_year <- prince_nrc_sub %>%
+  count(year) %>%
+  select(year, year_total = n)
+
+#Join the two and create a percent field
+year_radar_chart <- year_sentiment_nrc %>%
+  inner_join(total_sentiment_year, by = "year") %>%
+  mutate(percent = sentiment_year_count / year_total * 100 ) %>%
+  filter(year %in% c("1978","1994","1995")) %>%
+  select(-sentiment_year_count, -year_total) %>%
+  spread(year, percent) %>%
+  chartJSRadar(showToolTipLabel = TRUE,
+               main = "NRC Years Radar")
+
 
 # ############################### ----
 
