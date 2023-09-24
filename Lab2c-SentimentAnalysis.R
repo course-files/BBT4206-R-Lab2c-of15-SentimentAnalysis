@@ -255,6 +255,8 @@ blue_grey_colours_6 <- c("#27408E", "#304FAF", "#536CB5",
 blue_grey_colours_4 <- c("#27408E", "#536CB5",
                          "#B9BCC2", "#888A8E")
 
+blue_grey_colours_3 <- c("#6981c7", "#304FAF", "#888A8E")
+
 blue_grey_colours_2 <- c("#27408E",
                          "#888A8E")
 
@@ -436,7 +438,7 @@ evaluation_likes_and_wishes$Wishes <- sapply(evaluation_likes_and_wishes$Wishes,
                                              tolower)
 
 # After removing special characters and converting everything to lower case
-head(evaluation_likes_and_wishes,10)
+head(evaluation_likes_and_wishes, 10)
 
 write.csv(evaluation_likes_and_wishes,
           file = "data/evaluation_likes_and_wishes.csv",
@@ -832,7 +834,7 @@ nrc_likes_group_radar_chart <- nrc_likes_per_sentiment_per_group_radar %>%
 
 View(nrc_likes_group_radar_chart)
 
-# Plot the chartJS radar
+# Plot the radar visualization using chartJS
 chartJSRadar(nrc_likes_group_radar_chart,
              showToolTipLabel = TRUE,
              main = "Lexicon−Based Percentage Sentiment Analysis of Course Evaluation Likes per Group") # nolint
@@ -863,7 +865,7 @@ nrc_likes_gender_radar_chart <- nrc_likes_per_sentiment_per_gender_radar %>%
 
 View(nrc_likes_gender_radar_chart)
 
-# Plot the chartJS radar
+# Plot the radar visualization using chartJS
 chartJSRadar(nrc_likes_gender_radar_chart,
              showToolTipLabel = TRUE,
              main = "Lexicon−Based Percentage Sentiment Analysis of Course Evaluation Likes per Gender") # nolint
@@ -894,7 +896,7 @@ nrc_wishes_group_radar_chart <- nrc_wishes_per_sentiment_per_group_radar %>%
 
 View(nrc_wishes_group_radar_chart)
 
-# Plot the chartJS radar
+# Plot the radar visualization using chartJS
 chartJSRadar(nrc_wishes_group_radar_chart,
              showToolTipLabel = TRUE,
              main = "Lexicon−Based Percentage Sentiment Analysis of Course Evaluation Wishes per Group") # nolint
@@ -925,62 +927,258 @@ nrc_wishes_gender_radar_chart <- nrc_wishes_per_sentiment_per_gender_radar %>%
 
 View(nrc_wishes_gender_radar_chart)
 
-# Plot the chartJS radar
+# Plot the radar visualization using chartJS
 chartJSRadar(nrc_wishes_gender_radar_chart,
              showToolTipLabel = TRUE,
              main = "Lexicon−Based Percentage Sentiment Analysis of Course Evaluation Likes per Gender") # nolint
 
+# STEP 9. Classification of Words per Sentiment ----
+## Evaluation Likes ----
+evaluation_likes_filtered_nrc %>%
+  # filter(`Class Group` %in% "A") %>%
+  distinct(`Likes (tokenized)`) %>%
+  inner_join(get_sentiments("nrc"),
+             by = join_by(`Likes (tokenized)` == word),
+             relationship = "many-to-many") %>%
+  ggplot(aes(x = `Likes (tokenized)`, fill = sentiment)) +
+  facet_grid(~sentiment) +
+  geom_bar() + # Create a bar for each word per sentiment
+  theme(panel.grid.major.x = element_blank(),
+        axis.text.x = element_blank()) + # Place the words on the y-axis
+  xlab(NULL) + ylab(NULL) +
+  ggtitle(paste("Classification of Words in Course Evaluation Likes ",
+                "based on the NRC Lexicon")) +
+  coord_flip()
+
+## Evaluation Wishes ----
+evaluation_wishes_filtered_nrc %>%
+  # filter(`Class Group` %in% "A") %>%
+  distinct(`Wishes (tokenized)`) %>%
+  inner_join(get_sentiments("nrc"),
+             by = join_by(`Wishes (tokenized)` == word),
+             relationship = "many-to-many") %>%
+  ggplot(aes(x = `Wishes (tokenized)`, fill = sentiment)) +
+  facet_grid(~sentiment) +
+  geom_bar() + # Create a bar for each word per sentiment
+  theme(panel.grid.major.x = element_blank(),
+        axis.text.x = element_blank()) + # Place the words on the y-axis
+  xlab(NULL) + ylab(NULL) +
+  ggtitle(paste("Classification of Words in Course Evaluation Wishes ",
+                "based on the NRC Lexicon")) +
+  coord_flip()
+
+# STEP 10. Average per Question ----
+## Average per Question per Group ----
+evaluation_rating_per_question_per_group <- student_performance_dataset %>% # nolint
+  rename(`Class Group` = class_group) %>%
+  filter(!is.na(`Average Course Evaluation Rating`)) %>%
+  group_by(`Class Group`) %>%
+  summarize(
+    `A. I am enjoying the subject` =
+      mean(`A - 1. I am enjoying the subject`),
+    `B. Classes start and end on time` =
+      mean(`A - 2. Classes start and end on time`),
+    `C. The learning environment is participative, involves learning by doing and is group-based` = # nolint
+      mean(`A - 3. The learning environment is participative, involves learning by doing and is group-based`), # nolint
+    `D. The subject content is delivered according to the course outline and meets my expectations` = # nolint
+      mean(`A - 4. The subject content is delivered according to the course outline and meets my expectations`), # nolint
+    `E. The topics are clear and logically developed` =
+      mean(`A - 5. The topics are clear and logically developed`),
+    `F. I am developing my oral and writing skills` =
+      mean(`A - 6. I am developing my oral and writing skills`),
+    `G. I am developing my reflective and critical reasoning skills` =
+      mean(`A - 7. I am developing my reflective and critical reasoning skills`), # nolint
+    `H. The assessment methods are assisting me to learn` =
+      mean(`A - 8. The assessment methods are assisting me to learn`),
+    `I. I receive relevant feedback` =
+      mean(`A - 9. I receive relevant feedback`),
+    `J. I read the recommended readings and notes` =
+      mean(`A - 10. I read the recommended readings and notes`),
+    `K. I use the eLearning material posted` =
+      mean(`A - 11. I use the eLearning material posted`),
+    `L. Mean Overall Course Evaluation Rating` =
+      mean(`Average Course Evaluation Rating`),
+  ) %>%
+  # If we had to sort the results
+  # arrange(`Mean Average Course Evaluation Rating`) %>%
+  select(
+    `Class Group`,
+    `A. I am enjoying the subject`,
+    `B. Classes start and end on time`,
+    `C. The learning environment is participative, involves learning by doing and is group-based`, # nolint
+    `D. The subject content is delivered according to the course outline and meets my expectations`, # nolint
+    `E. The topics are clear and logically developed`,
+    `F. I am developing my oral and writing skills`,
+    `G. I am developing my reflective and critical reasoning skills`, # nolint
+    `H. The assessment methods are assisting me to learn`,
+    `I. I receive relevant feedback`,
+    `J. I read the recommended readings and notes`,
+    `K. I use the eLearning material posted`,
+    `L. Mean Overall Course Evaluation Rating`
+  )
+
+View(evaluation_rating_per_question_per_group)
+
+evaluation_rating_per_question_per_group_long_data <- evaluation_rating_per_question_per_group %>% # nolint
+  pivot_longer(
+               cols = -`Class Group`,
+               names_to = "Evaluation Question",
+               values_to = "Mean Value")
+
+View(evaluation_rating_per_question_per_group_long_data)
+
+evaluation_rating_per_question_per_group_long_data <- # nolint
+  evaluation_rating_per_question_per_group_long_data %>%
+  mutate(`Evaluation Question` =
+         factor(`Evaluation Question`,
+           levels =
+           c("A. I am enjoying the subject",
+             "B. Classes start and end on time",
+             "C. The learning environment is participative, involves learning by doing and is group-based", # nolint
+             "D. The subject content is delivered according to the course outline and meets my expectations", # nolint
+             "E. The topics are clear and logically developed",
+             "F. I am developing my oral and writing skills",
+             "G. I am developing my reflective and critical reasoning skills", # nolint
+             "H. The assessment methods are assisting me to learn",
+             "I. I receive relevant feedback",
+             "J. I read the recommended readings and notes",
+             "K. I use the eLearning material posted",
+             "L. Mean Overall Course Evaluation Rating")
+         )) %>%
+  mutate(`Class Group` = factor(`Class Group`, levels = c("A", "B", "C")))
+
+View(evaluation_rating_per_question_per_group_long_data)
+
+# This is done to enable word wrapping when the plot is created
+evaluation_rating_per_question_per_group_long_data$`Evaluation Question` <- # nolint
+str_wrap(evaluation_rating_per_question_per_group_long_data$`Evaluation Question`, # nolint
+         width = 30)
+
+### Visualizations (Grouped Vertical Bar Chart) ----
+# ggplot2 visualization samples are available here:
+# https://r-graph-gallery.com/index.html
+
+ggplot(evaluation_rating_per_question_per_group_long_data,
+       aes(fill = `Class Group`, y = `Mean Value`, x = `Evaluation Question`,
+           label = `Mean Value`)) +
+  geom_bar(position = "dodge", stat = "identity") +
+  coord_flip() +  # Flip the coordinates to make it vertical
+  geom_text(position = position_dodge(width = 0.9),
+            hjust = 1, vjust = 0.5) +  # Add text labels
+  labs(title = "Standard Course Evaluation Score per Question per Group",
+       x = "Standard Course Evaluation Questions", y = "Mean Value") +
+  scale_fill_manual(values = blue_grey_colours_3) +
+  blue_grey_theme() +
+  geom_hline(yintercept = 4, color = "#b90c0c",
+             linetype = "dashed", size = 1)
+
+## Average per Question per Gender ----
+evaluation_rating_per_question_per_gender <- student_performance_dataset %>% # nolint
+  mutate(`Student's Gender` =
+           ifelse(gender == 1, "Male", "Female")) %>%
+  filter(!is.na(`Average Course Evaluation Rating`)) %>%
+  group_by(`Student's Gender`) %>%
+  summarize(
+    `A. I am enjoying the subject` =
+      mean(`A - 1. I am enjoying the subject`),
+    `B. Classes start and end on time` =
+      mean(`A - 2. Classes start and end on time`),
+    `C. The learning environment is participative, involves learning by doing and is group-based` = # nolint
+      mean(`A - 3. The learning environment is participative, involves learning by doing and is group-based`), # nolint
+    `D. The subject content is delivered according to the course outline and meets my expectations` = # nolint
+      mean(`A - 4. The subject content is delivered according to the course outline and meets my expectations`), # nolint
+    `E. The topics are clear and logically developed` =
+      mean(`A - 5. The topics are clear and logically developed`),
+    `F. I am developing my oral and writing skills` =
+      mean(`A - 6. I am developing my oral and writing skills`),
+    `G. I am developing my reflective and critical reasoning skills` =
+      mean(`A - 7. I am developing my reflective and critical reasoning skills`), # nolint
+    `H. The assessment methods are assisting me to learn` =
+      mean(`A - 8. The assessment methods are assisting me to learn`),
+    `I. I receive relevant feedback` =
+      mean(`A - 9. I receive relevant feedback`),
+    `J. I read the recommended readings and notes` =
+      mean(`A - 10. I read the recommended readings and notes`),
+    `K. I use the eLearning material posted` =
+      mean(`A - 11. I use the eLearning material posted`),
+    `L. Mean Overall Course Evaluation Rating` =
+      mean(`Average Course Evaluation Rating`),
+  ) %>%
+  # If we had to sort the results
+  # arrange(`Mean Average Course Evaluation Rating`) %>%
+  select(
+    `Student's Gender`,
+    `A. I am enjoying the subject`,
+    `B. Classes start and end on time`,
+    `C. The learning environment is participative, involves learning by doing and is group-based`, # nolint
+    `D. The subject content is delivered according to the course outline and meets my expectations`, # nolint
+    `E. The topics are clear and logically developed`,
+    `F. I am developing my oral and writing skills`,
+    `G. I am developing my reflective and critical reasoning skills`, # nolint
+    `H. The assessment methods are assisting me to learn`,
+    `I. I receive relevant feedback`,
+    `J. I read the recommended readings and notes`,
+    `K. I use the eLearning material posted`,
+    `L. Mean Overall Course Evaluation Rating`
+  )
+
+View(evaluation_rating_per_question_per_gender)
+
+evaluation_rating_per_question_per_gender_long_data <- evaluation_rating_per_question_per_gender %>% # nolint
+  pivot_longer(
+               cols = -`Student's Gender`,
+               names_to = "Evaluation Question",
+               values_to = "Mean Value")
+
+View(evaluation_rating_per_question_per_gender_long_data)
+
+evaluation_rating_per_question_per_gender_long_data <- # nolint
+  evaluation_rating_per_question_per_gender_long_data %>%
+  mutate(`Evaluation Question` =
+         factor(`Evaluation Question`,
+           levels =
+           c("A. I am enjoying the subject",
+             "B. Classes start and end on time",
+             "C. The learning environment is participative, involves learning by doing and is group-based", # nolint
+             "D. The subject content is delivered according to the course outline and meets my expectations", # nolint
+             "E. The topics are clear and logically developed",
+             "F. I am developing my oral and writing skills",
+             "G. I am developing my reflective and critical reasoning skills", # nolint
+             "H. The assessment methods are assisting me to learn",
+             "I. I receive relevant feedback",
+             "J. I read the recommended readings and notes",
+             "K. I use the eLearning material posted",
+             "L. Mean Overall Course Evaluation Rating")
+         )) %>%
+  mutate(`Student's Gender` =
+         factor(`Student's Gender`, levels = c("Male", "Female")))
+
+View(evaluation_rating_per_question_per_gender_long_data)
+
+# This is done to enable word wrapping when the plot is created
+evaluation_rating_per_question_per_gender_long_data$`Evaluation Question` <- # nolint
+str_wrap(evaluation_rating_per_question_per_gender_long_data$`Evaluation Question`, # nolint
+         width = 30)
+
+### Visualizations (Grouped Vertical Bar Chart) ----
+# ggplot2 visualization samples are available here:
+# https://r-graph-gallery.com/index.html
+
+ggplot(evaluation_rating_per_question_per_gender_long_data,
+       aes(fill = `Student's Gender`, y = `Mean Value`,
+           x = `Evaluation Question`, label = `Mean Value`)) +
+  geom_bar(position = "dodge", stat = "identity") +
+  coord_flip() +  # Flip the coordinates to make it vertical
+  geom_text(position = position_dodge(width = 0.9),
+            hjust = 1, vjust = 0.5) +  # Add text labels
+  labs(title = "Standard Course Evaluation Score per Question per Gender",
+       x = "Standard Course Evaluation Questions", y = "Mean Value") +
+  scale_fill_manual(values = c("lightblue", "lightpink")) +
+  blue_grey_theme() +
+  geom_hline(yintercept = 4, color = "#b90c0c",
+             linetype = "dashed", size = 1)
 
 # ############################### ----
-
-prince_data <- read.csv('data/prince_new.csv', stringsAsFactors = FALSE, row.names = 1) # nolint
-
-#Create tidy text format: Unnested, Unsummarized, -Undesirables, Stop and Short words # nolint
-prince_tidy <- prince_data %>%
-  unnest_tokens(word, lyrics) %>% #Break the lyrics into individual words
-  filter(!word %in% undesirable_words) %>% #Remove undesirables
-  filter(!nchar(word) < 3) %>% #Words like "ah" or "oo" used in music
-  anti_join(stop_words) #Data provided by the tidytext package
-
-prince_tidy %>%
-  mutate(words_in_lyrics = n_distinct(word)) %>%
-  inner_join(new_sentiments) %>%
-  group_by(lexicon, words_in_lyrics, words_in_lexicon) %>%
-  summarise(lex_match_words = n_distinct(word)) %>%
-  ungroup() %>%
-  mutate(total_match_words = sum(lex_match_words), #Not used but good to have
-         match_ratio = lex_match_words / words_in_lyrics) %>%
-  select(lexicon, lex_match_words,  words_in_lyrics, match_ratio) %>%
-  mutate(lex_match_words = color_bar("lightpink")(lex_match_words),
-         lexicon = color_tile("lightgreen", "lightgreen")(lexicon))
-
-
-prince_nrc_sub <- prince_tidy %>%
-  inner_join(get_sentiments("nrc")) %>%
-  filter(!sentiment %in% c("positive", "negative"))
-
-
-#Get the count of words per sentiment per year
-year_sentiment_nrc <- prince_nrc_sub %>%
-  group_by(year, sentiment) %>%
-  count(year, sentiment) %>%
-  select(year, sentiment, sentiment_year_count = n)
-
-#Get the total count of sentiment words per year (not distinct)
-total_sentiment_year <- prince_nrc_sub %>%
-  count(year) %>%
-  select(year, year_total = n)
-
-#Join the two and create a percent field
-year_radar_chart <- year_sentiment_nrc %>%
-  inner_join(total_sentiment_year, by = "year") %>%
-  mutate(percent = sentiment_year_count / year_total * 100 ) %>%
-  filter(year %in% c("1978","1994","1995")) %>%
-  select(-sentiment_year_count, -year_total) %>%
-  spread(year, percent) %>%
-  chartJSRadar(showToolTipLabel = TRUE,
-               main = "NRC Years Radar")
-
 
 # ############################### ----
 
@@ -1036,20 +1234,22 @@ year_radar_chart <- year_sentiment_nrc %>%
 
 ## Zhu  [aut, H., cre, Travison, T., Tsai, T., Beasley, W., Xie, Y., Yu, G., Laurent, S., Shepherd, R., Sidi, Y., Salzer, B., Gui, G., Fan, Y., Murdoch, D., & Evans, B. (2021). kableExtra: Construct Complex Table with ‘kable’ and Pipe Syntax (1.3.4) [Computer software]. https://cran.r-project.org/package=kableExtra # nolint ----
 
-# **Required Lab Work Submission** ----
+# **OPTIONAL Lab Work Submission** ----
 
 # NOTE: The lab work should be done in groups of between 2 and 5 members using
 #       Git and GitHub.
 
+# ALSO NOTE: This lab is OPTIONAL (you do not have to do it).
+# The groups that decide to do it will earn bonus marks for the effort.
+
 ## Part A ----
 # Create a new file in the project's root folder called
-# "Lab2-Submission-ExploratoryDataAnalysis.R".
-# Use this file to provide all the code you have used to perform an exploratory
-# data analysis of the "Class Performance Dataset" provided on the eLearning
-# platform.
+# "Lab2c-Submission-SentimentAnalysis.R".
+# Use this file to provide all the code you have used to perform sentiment
+# analysis of any lecturer's course evaluation (one lecturer per group).
 
 ## Part B ----
-# Upload *the link* to your "Lab2-Submission-ExploratoryDataAnalysis.R" hosted
+# Upload *the link* to your "Lab2c-Submission-SentimentAnalysis.R" hosted
 # on Github (do not upload the .R file itself) through the submission link
 # provided on eLearning.
 
@@ -1089,7 +1289,8 @@ year_radar_chart <- year_sentiment_nrc %>%
 
 # By default, Rmd files are open as Markdown documents. To enable R Markdown
 # features, you need to associate *.Rmd files with rmd language.
-# Add an entry Item "*.Rmd" and Value "rmd" in the VS Code settings editor.
+# Add an entry Item "*.Rmd" and Value "rmd" in the VS Code settings,
+# "File Association" option.
 
 # Documentation of knitR: https://www.rdocumentation.org/packages/knitr/
 
