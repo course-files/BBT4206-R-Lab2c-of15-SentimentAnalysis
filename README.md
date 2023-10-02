@@ -2,24 +2,35 @@
 
 These are course files (instructional materials) for the **BBT4206: Business Intelligence II** course using **R**.
 
-| **Attribute**         | Value                                                        |
-|-----------------------|-------------------------------------------------|
-| **Course Code**       | BBT4206                                                      |
-| **Course Name**       | Business Intelligence II                                     |
-| **URL**               | <https://elearning.strathmore.edu/course/view.php?id=6599>   |
-| **Semester Duration** | 21<sup>st</sup> August 2023 to 28<sup>th</sup> November 2023 |
-| **Lecturer**          | Allan Omondi                                                 |
-| **Contact**           | aomondi_at_strathmore_dot_edu                                |
++--------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **Key**                  | Value                                                                                                                                                                                |
++==========================+======================================================================================================================================================================================+
+| **Course Code**          | BBT4206                                                                                                                                                                              |
++--------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **Course Name**          | Business Intelligence II                                                                                                                                                             |
++--------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **URL**                  | <https://elearning.strathmore.edu/course/view.php?id=6599>                                                                                                                           |
++--------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **Semester Duration**    | 21<sup>st</sup> August 2023 to 28<sup>th</sup> November 2023                                                                                                                         |
++--------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **Lecturer**             | Allan Omondi                                                                                                                                                                         |
++--------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **Contact**              | aomondi_at_strathmore_dot_edu                                                                                                                                                        |
++--------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **Recommended Citation** | Omondi, A. (2023). *BBT4206-R-Lab2c-of15-SentimentAnalysis* (Version 1) [R]. <https://github.com/course-files/BBT4206-R-Lab2c-of15-SentimentAnalysis> (Original work published 2023) |
+|                          |                                                                                                                                                                                      |
+|                          | BibTex: [RecommendedCitation.bib](RecommendedCitation.bib)                                                                                                                           |
++--------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 It is based on the following 9 steps of **Knowledge Discovery in Databases (KDD)**:
 
-## Step 1: Problem Definition and Goal Setting
+## Step 1: Problem Definition and Goal Setting {#step-1-problem-definition-and-goal-setting}
 
 This involves an understanding of the problem, the requirements of the end-user for the solution to the problem, and the environment in which the KDD process will occur.
 
 -   [*BI Project: Section 1, 3, and 14*](https://docs.google.com/document/d/1Ay1VaAjd9JzQJ5JnkPHZLvtDRNAWrc5RYCPo1bvxgBU/edit?usp=sharing)
 
-## Step 2: Data Selection
+## Step 2: Data Selection {#step-2-data-selection}
 
 This involves discovering what data is accessible, selecting the significant data that is accessible, and then integrating all this data into one set (a dataset). It is extremely important to ensure that the data is collected ethically (informed consent), and that the data is not biased (the sample should represent the population). The entire KDD process may be unsuccessful if there are significant attributes/features missing in the dataset. This can be performed by the data engineer.
 
