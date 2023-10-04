@@ -430,7 +430,7 @@ head(evaluation_likes_and_wishes, 10)
 # Function to remove special characters and convert all text to a standard
 # lower case
 remove_special_characters <- function(doc) {
-  gsub("[^a-zA-Z0-9 ]", "", doc, ignore.case = TRUE)
+  gsub("[^a-zA-Z ]", "", doc, ignore.case = TRUE)
 }
 
 evaluation_likes_and_wishes$Likes <- sapply(evaluation_likes_and_wishes$Likes,
@@ -507,7 +507,7 @@ write.csv(evaluation_wishes_filtered,
 
 # A lexical dictionary (lexicon), specifically a sentiment lexicon, contains
 # words or phrases and assigns sentiment or emotional polarity to each entry.
-# Words are typically labeled as positive, negative, neutral, joy, anger,
+# Words are typically labelled as positive, negative, neutral, joy, anger,
 # sadness, surprise, etc., to aid in sentiment analysis tasks.
 
 # NOTE: No lexicon can have all words, nor should it. Many words are considered
