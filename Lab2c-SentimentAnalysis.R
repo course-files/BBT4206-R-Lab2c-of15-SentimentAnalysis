@@ -249,6 +249,13 @@ if (!is.element("stringr", installed.packages()[, 1])) {
 }
 require("stringr")
 
+## lexicon - An alternative to load the NRC lexicon ----
+if (!is.element("lexicon", installed.packages()[, 1])) {
+  install.packages("lexicon", dependencies = TRUE,
+                   repos = "https://cloud.r-project.org")
+}
+require("lexicon")
+
 # STEP 2. Customize the Visualizations, Tables, and Colour Scheme ----
 # The following defines a blue-grey colour scheme for the visualizations:
 ## shades of blue and shades of grey
@@ -521,6 +528,18 @@ write.csv(evaluation_wishes_filtered,
 # positive, negative, anger, anticipation, disgust, fear, joy, sadness,
 # surprise, and trust.
 nrc <- get_sentiments("nrc")
+View(nrc)
+
+# If you get an error locating the NRC lexicon using the code above,
+# then you can locate it using the `lexicon` package instead of using the
+# `tidytext` package as shown below:
+
+# Alternative source of the NRC lexicon:
+data(hash_nrc_emotions)
+nrc <- hash_nrc_emotions
+nrc <- nrc %>%
+  mutate(word = token, sentiment = emotion) %>%
+  select(word, sentiment)
 View(nrc)
 
 ### AFINN ----
