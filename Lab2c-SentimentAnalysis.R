@@ -568,12 +568,12 @@ View(loughran)
 
 # STEP 5. Inner Join the Likes/Wishes with the Corresponding Sentiment(s) ----
 evaluation_likes_filtered_nrc <- evaluation_likes_filtered %>%
-  inner_join(get_sentiments("nrc"),
+  inner_join(nrc,
              by = join_by(`Likes (tokenized)` == word),
              relationship = "many-to-many")
 
 evaluation_wishes_filtered_nrc <- evaluation_wishes_filtered %>%
-  inner_join(get_sentiments("nrc"),
+  inner_join(nrc,
              by = join_by(`Wishes (tokenized)` == word),
              relationship = "many-to-many")
 
@@ -963,7 +963,7 @@ chartJSRadar(nrc_wishes_gender_radar_chart,
 evaluation_likes_filtered_nrc %>%
   # filter(`Class Group` %in% "A") %>%
   distinct(`Likes (tokenized)`) %>%
-  inner_join(get_sentiments("nrc"),
+  inner_join(nrc,
              by = join_by(`Likes (tokenized)` == word),
              relationship = "many-to-many") %>%
   ggplot(aes(x = `Likes (tokenized)`, fill = sentiment)) +
@@ -980,7 +980,7 @@ evaluation_likes_filtered_nrc %>%
 evaluation_wishes_filtered_nrc %>%
   # filter(`Class Group` %in% "A") %>%
   distinct(`Wishes (tokenized)`) %>%
-  inner_join(get_sentiments("nrc"),
+  inner_join(nrc,
              by = join_by(`Wishes (tokenized)` == word),
              relationship = "many-to-many") %>%
   ggplot(aes(x = `Wishes (tokenized)`, fill = sentiment)) +
